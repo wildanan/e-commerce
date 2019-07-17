@@ -28,10 +28,10 @@
                         <br>
                         <h3><b>Rp {{eachData.price}}.00,-</b></h3>
                          <div class="buttons">
-                            <b-button rounded>Buy</b-button>
-                            <b-button rounded v-if="adaYgLogin" @click="addToChart(eachData._id, eachData.itemName, eachData.price, eachData.image)"> add to cart <i class="fas fa-cart-arrow-down"></i> </b-button>
+                            <b-button rounded @click="buy()">Buy</b-button>
+                            <b-button rounded @click="addToChart(eachData._id, eachData.itemName, eachData.price, eachData.image)"> add to cart <i class="fas fa-cart-arrow-down"></i> </b-button>
                             <b-button @click="confirm(eachData._id)" rounded v-if="isAdmin == 'admin'">Delete Item</b-button>
-                            <b-button @click="edit(eachData._id)" rounded>Edit</b-button>
+                            <b-button @click="edit(eachData._id)" rounded v-if="isAdmin == 'admin'">Edit</b-button>
                         </div>
 
                         </div>
@@ -50,7 +50,7 @@ export default {
     data(){
         return{
             allData : '',
-            adaYgLogin : `${localStorage.getItem("token")}`,
+            adaYgLogin : localStorage.getItem("token"),
             tempItemName : '',
             tempPrice : '',
             tempImage : '',
@@ -58,6 +58,26 @@ export default {
         }
     },
     methods : {
+        buy(){
+            if(!this.adaYgLogin){
+                Swal.fire({
+                type: 'error',
+                title: 'Oops...',
+                text: 'you have to login first',
+                footer: '<a href>Why do I have this issue?</a>'
+                })
+            }else{
+                Swal.fire({
+                    title: 'Sweet!',
+                    text: 'yeay you have bought this item!',
+                    imageUrl: 'https://unsplash.it/400/200',
+                    imageWidth: 400,
+                    imageHeight: 200,
+                    imageAlt: 'Custom image',
+                    animation: false
+                })
+            }
+        },
         getData(){
             axios.get('http://localhost:3000/item/allItem').then(({data}) => {
                 // console.log(data, 'halo')
@@ -65,24 +85,33 @@ export default {
             })
         },
         addToChart(itemId, name, rpice, image){
-            Swal.fire({
-                title: `Add this item to your cart? ${itemId}`,
-                type: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, add it!'
-                }).then((result) => {
-                    console.log(itemId, `${localStorage.getItem("userId")}`, 'keluar ga?')
-                    this.addCart(itemId, `${localStorage.getItem("userId")}`, name, rpice, image)
-                    if (result.value) {
-                    Swal.fire(
-                    ' add to cart sucess!',
-                    'You has been added 1 item to cart',
-                    'success'
-                    )
-                }
-            })
+            if(!this.adaYgLogin){
+                Swal.fire({
+                type: 'error',
+                title: 'Oops...',
+                text: 'you have to login first',
+                footer: '<a href>Why do I have this issue?</a>'
+                })
+            }else{
+                Swal.fire({
+                    title: `Add this item to your cart? ${itemId}`,
+                    type: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, add it!'
+                    }).then((result) => {
+                        console.log(itemId, `${localStorage.getItem("userId")}`, 'keluar ga?')
+                        this.addCart(itemId, `${localStorage.getItem("userId")}`, name, rpice, image)
+                        if (result.value) {
+                        Swal.fire(
+                        ' add to cart sucess!',
+                        'You has been added 1 item to cart',
+                        'success'
+                        )
+                    }
+                })
+            }
         },
         addCart(iId, uId, iN, iP, iI){
             axios.post(`http://localhost:3000/cart/addToCart/${uId}/${iId}`, {itemName : iN, itemPrice : iP, itemImage : iI}, {headers : {token : `${localStorage.getItem("token")}`}})
